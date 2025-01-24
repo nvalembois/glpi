@@ -1,0 +1,14 @@
+---
+# helm template glpi oci://proxy-docker-io.insee.fr/bitnamicharts/mariadb -f .\mariadb-values.yaml
+global:
+  imageRegistry: proxy-docker-io.insee.fr
+  security:
+    allowInsecureImages: true
+
+auth:
+  existingSecret: glpi-mariadb-root
+  database: glpi
+
+networkPolicy:
+  ingressNSPodMatchLabels:
+    app: glpi
