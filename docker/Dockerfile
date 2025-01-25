@@ -42,27 +42,27 @@ RUN set -e \
 RUN set -e \
  && adduser -u 10001 --no-create-home --disabled-password --home /var/www/glpi glpi \
  && install -d -o root -g nginx -m 0755 /var/www \
- && SRC_GLPI=$(curl -sL https://api.github.com/repos/glpi-project/glpi/releases/tags/${VERSION_GLPI} | jq -r .assets[0].browser_download_url) \
- && echo "Installing glpi/${VERSION_GLPI}: ${SRC_GLPI}" \
- && curl -sL ${SRC_GLPI} | tar xzvf - -C /var/www
- && ARCHIVE=glpi-datainjection-${VERSION_DATAINJECTION}.tar.bz2 \
+ && REPO=glpi-project/glpi \
+ && VERSION=${VERSION_GLPI} \
+ && ARCHIVE=glpi-${VERSION}.tgz \
  && JQ_FILTER='.assets[] | select(.name=="'${ARCHIVE}'") | .browser_download_url' \
- && URL="https://api.github.com/repos/pluginsGLPI/datainjection/releases/tags/${VERSION_DATAINJECTION}" \
+ && URL="https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
  && SRC=$(curl -sL "${URL}" | jq -r "$JQ_FILTER" ) \
- && echo "Installing plugin datainjection/${VERSION_DATAINJECTION}: ${SRC_PLUGIN}" \
  && curl -sLO "${SRC}" \
- && tar xjvf "${ARCHIVE}" -C /var/www/glpi/plugins \
-
+ && tar xavf "${ARCHIVE}" -C /var/www \
+ && rm "${ARCHIVE}"
 
 RUN set -e \
- && ARCHIVE=glpi-datainjection-${VERSION_DATAINJECTION}.tar.bz2 \
+ && REPO=pluginsGLPI/datainjection \
+ && VERSION=${VERSION_DATAINJECTION}
+ && ARCHIVE=glpi-datainjection-${VERSION}.tar.bz2 \
  && JQ_FILTER='.assets[] | select(.name=="'${ARCHIVE}'") | .browser_download_url' \
- && URL="https://api.github.com/repos/pluginsGLPI/datainjection/releases/tags/${VERSION_DATAINJECTION}" \
+ && URL="https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
  && SRC=$(curl -sL "${URL}" | jq -r "$JQ_FILTER" ) \
- && echo "Installing plugin datainjection/${VERSION_DATAINJECTION}: ${SRC_PLUGIN}" \
  && curl -sLO "${SRC}" \
- && tar xjvf "${ARCHIVE}" -C /var/www/glpi/plugins \
+ && tar xavf "${ARCHIVE}" -C /var/www/glpi/plugins \
  && rm "${ARCHIVE}"
+
 RUN set -e \
  && php=php${VERSION_PHP_MAJOR} \
  && sed -e 's,^\s*;*\s*date.timezone\s.*$,date.timezone = '${TIMEZONE}',' \
@@ -82,11 +82,6 @@ RUN set -e \
  && sed -e 's,error_log.*,\1error_log  /dev/stderr notice;,' \
         -e 's,access_log.*,access_log  /dev/stdout  main;,' \
         -i  /etc/nginx/nginx.conf
-#           && mkdir -p /var/www/html/glpi \
-# && sed -i 's,^\s*;*\s*error_log\s.*$,error_log = /data/log/phpfpm.error.log,' /etc/${php}/php-fpm.conf \
-# && echo 'access.log = /data/log/phpfpm-$pool.access.log' >>/etc/${php}/php-fpm.d/glpi.conf \
-# && echo 'slowlog = /data/log/phpfpm-$pool.slowlog.log' >>/etc/${php}/php-fpm.d/glpi.conf \
-# && echo 'php_admin_value[error_log] = /data/log/phpfpm-$pool.error.log' >>/etc/${php}/php-fpm.d/glpi.conf \
 
 ADD default.conf /etc/nginx/conf.d/
 ADD glpi.conf /etc/php83/php-fpm.d/
