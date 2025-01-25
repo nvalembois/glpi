@@ -8,13 +8,25 @@ install -d /data \
   /data/files/_sessions /data/files/_tmp /data/files/_uploads \
   /data/files/_cache
 
-php bin/console --no-interaction db:configure \
-    --reconfigure \
-    --db-host="${MARIADB_HOST:-localhost}" \
-    --db-port="${MARIADB_PORT:-3306}" \
-    --db-name="${MARIADB_DATABASE:-glpi}" \
-    --db-user="${MARIADB_USER:-glpi}" \
-    --db-password="${MARIADB_PASSWORD:-glpi}"
-php bin/console --no-interaction glpi:system:check_requirements
-php bin/console --no-interaction db:update \
-    --${GLPI_TELEMETRY:-enable}-telemetry
+php bin/console --no-interaction system:check_requirements
+# if [[ ! -f /data/config/config_db.php ]] # install not executed
+# then
+#   php bin/console --no-interaction db:install \
+#       --reconfigure \
+#       --db-host="${MARIADB_HOST:-localhost}" \
+#       --db-port="${MARIADB_PORT:-3306}" \
+#       --db-name="${MARIADB_DATABASE:-glpi}" \
+#       --db-user="${MARIADB_USER:-glpi}" \
+#       --db-password="${MARIADB_PASSWORD:-glpi}"
+# else
+  php bin/console --no-interaction db:configure \
+      --reconfigure \
+      --db-host="${MARIADB_HOST:-localhost}" \
+      --db-port="${MARIADB_PORT:-3306}" \
+      --db-name="${MARIADB_DATABASE:-glpi}" \
+      --db-user="${MARIADB_USER:-glpi}" \
+      --db-password="${MARIADB_PASSWORD:-glpi}"
+  php bin/console --no-interaction db:update \
+      --${GLPI_TELEMETRY:-enable}-telemetry
+# fi
+
