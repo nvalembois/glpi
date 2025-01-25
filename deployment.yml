@@ -31,7 +31,7 @@ spec:
           claimName: glpi-data
       - name: socket
         emptyDir:
-          medium: memory
+          # medium: memory
           sizeLimit: 100Mi
       hostname: glpi
       initContainers:
@@ -40,6 +40,21 @@ spec:
         args:
         - /bin/sh
         - /init.sh
+        env:
+        - name: MARIADB_HOST
+          value: "674aedef33c5"
+        - name: MARIADB_USER
+          value: "glpi"
+        - name: MARIADB_PASSWORD
+          value: "glpi"
+          # valueFrom:
+          #   secretKeyRef:
+          #     name: glpi-mariadb
+          #     key: mariadb-password
+        - name: MARIADB_DATABASE
+          value: "glpi"
+        - name: GLPI_TELEMETRY
+          value: "no"
         volumeMounts:
         - mountPath: /data
           name: glpi-data
@@ -53,6 +68,7 @@ spec:
         ports:
         - containerPort: 80
           name: http
+          hostPort: 8000  # Exposes container port 80 on host port 8000
         volumeMounts:
         - mountPath: /data
           name: glpi-data
@@ -81,4 +97,3 @@ spec:
           name: glpi-data
       securityContext:
         fsGroup: 101
-    
