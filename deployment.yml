@@ -19,48 +19,64 @@ spec:
   selector:
     matchLabels:
       app: glpi
+      glpi-mariadb-client: "true"
   replicas: 1 
   template: 
     metadata:
       labels:
         app: glpi
+        glpi-mariadb-client: "true"
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/storage
+                operator: In
+                values:
+                 - "true"
+      securityContext:
+        fsGroup: 101
+        runAsNonRoot: true
       volumes:
       - name: glpi-data
         persistentVolumeClaim:
           claimName: glpi-data
       - name: socket
         emptyDir:
-          # medium: memory
           sizeLimit: 100Mi
       hostname: glpi
       initContainers:
       - name: init
-        image: localhost/glpi:10.0.17
+        image: ghcr.io/nvalembois/glpi:10.0.17
         args:
         - /bin/sh
         - /init.sh
         env:
         - name: MARIADB_HOST
-          value: "674aedef33c5"
+          value: "glpi-mariadb"
         - name: MARIADB_USER
           value: "glpi"
         - name: MARIADB_PASSWORD
-          value: "glpi"
-          # valueFrom:
-          #   secretKeyRef:
-          #     name: glpi-mariadb
-          #     key: mariadb-password
+          valueFrom:
+            secretKeyRef:
+              name: glpi-mariadb
+              key: mariadb-password
         - name: MARIADB_DATABASE
           value: "glpi"
         - name: GLPI_TELEMETRY
           value: "no"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
         volumeMounts:
         - mountPath: /data
           name: glpi-data
       containers:
       - name: nginx
-        image: localhost/glpi:10.0.17
+        image: ghcr.io/nvalembois/glpi:10.0.17
         args:
         - /usr/sbin/nginx
         - -g
@@ -68,17 +84,16 @@ spec:
         ports:
         - containerPort: 80
           name: http
-          hostPort: 8000  # Exposes container port 80 on host port 8000
         volumeMounts:
-        - mountPath: /data
-          name: glpi-data
         - mountPath: /run/php
           name: socket
         securityContext:
+          allowPrivilegeEscalation: false
           capabilities:
+            drop: ["ALL"]
             add: ["NET_BIND_SERVICE"]
       - name: php-fpm
-        image: localhost/glpi:10.0.17
+        image: ghcr.io/nvalembois/glpi:10.0.17
         args:
         - /usr/sbin/php-fpm83
         - -F
@@ -87,13 +102,19 @@ spec:
           name: glpi-data
         - mountPath: /run/php
           name: socket
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
       - name: cron
-        image: localhost/glpi:10.0.17
+        image: ghcr.io/nvalembois/glpi:10.0.17
         args:
         - /usr/bin/supercronic
         - /etc/crontab-glpi
         volumeMounts:
         - mountPath: /data
           name: glpi-data
-      securityContext:
-        fsGroup: 101
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]

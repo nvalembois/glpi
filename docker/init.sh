@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-install -d -o nginx -g nginx -m 0750 /data \
+install -d -m 0750 /data \
   /data/config /data/files /data/log /data/marketplace /data/dumps \
   /data/files/_cron /data/files/_graphs /data/files/_lock \
   /data/files/_pictures /data/files/_plugins /data/files/_rss \
