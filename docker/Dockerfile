@@ -93,3 +93,4 @@ ENTRYPOINT [ "" ]
 CMD [ "/bin/sh" ]
 
 WORKDIR /var/www/glpi
+
