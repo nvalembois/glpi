@@ -1,14 +1,22 @@
 ---
-# helm template glpi oci://proxy-docker-io.insee.fr/bitnamicharts/mariadb -f .\mariadb-values.yaml
-global:
-  imageRegistry: proxy-docker-io.insee.fr
-  security:
-    allowInsecureImages: true
+# helm template glpi oci://docker.io/bitnamicharts/mariadb -f .\mariadb-values.yaml
 
 auth:
-  existingSecret: glpi-mariadb-root
+  rootPasswrd: c,-kfa)tçTaQ)
   database: glpi
+  username: glpi
+  password: glpi
+  # existingPassword: glpi-mariadb   # (mariadb-root-password, mariadb-replication-password and mariadb-password)
+
+
+primary:
+  pdb:
+    create: false
 
 networkPolicy:
+  enabled: false
   ingressNSPodMatchLabels:
     app: glpi
+
+serviceAccount:
+  create: false
