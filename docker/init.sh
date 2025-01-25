@@ -1,14 +1,14 @@
 #!/bin/sh
 set -e
 
-# install -d /data \
-#   /data/config /data/files /data/log /data/marketplace /data/dumps \
-#   /data/files/_cron /data/files/_graphs /data/files/_lock \
-#   /data/files/_pictures /data/files/_plugins /data/files/_rss \
-#   /data/files/_sessions /data/files/_tmp /data/files/_uploads \
-#   /data/files/_cache
+install -d /data \
+  /data/config /data/files /data/log /data/marketplace /data/dumps \
+  /data/files/_cron /data/files/_graphs /data/files/_lock \
+  /data/files/_pictures /data/files/_plugins /data/files/_rss \
+  /data/files/_sessions /data/files/_tmp /data/files/_uploads \
+  /data/files/_cache
 
-php bin/console --no-interaction db:install \
+php bin/console --no-interaction db:configure \
     --reconfigure \
     --db-host="${MARIADB_HOST:-localhost}" \
     --db-port="${MARIADB_PORT:-3306}" \
