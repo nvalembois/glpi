@@ -2,21 +2,26 @@
 # helm template glpi oci://docker.io/bitnamicharts/mariadb -f .\mariadb-values.yaml
 
 auth:
-  rootPasswrd: c,-kfa)tçTaQ)
   database: glpi
   username: glpi
-  password: glpi
-  # existingPassword: glpi-mariadb   # (mariadb-root-password, mariadb-replication-password and mariadb-password)
-
+  existingPassword: glpi-mariadb   # (mariadb-root-password, mariadb-replication-password and mariadb-password)
 
 primary:
   pdb:
     create: false
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/storage
+            operator: In
+            values:
+              - "true"
 
 networkPolicy:
-  enabled: false
-  ingressNSPodMatchLabels:
-    app: glpi
+  enabled: true
+  allowExternal: false
 
 serviceAccount:
-  create: false
+  create: true
