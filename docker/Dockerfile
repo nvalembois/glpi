@@ -3,6 +3,7 @@ FROM docker.io/library/alpine:3.21.2 AS source
 
 ARG GLPI_VERSION=10.0.17
 ARG DATAINJECTION_VERSION=2.14.1
+ARG SINGLESIGNON_VERSION=1.3.3
 
 # User and packages
 RUN set -e \
@@ -27,6 +28,18 @@ RUN set -e \
  && REPO=pluginsGLPI/datainjection \
  && VERSION=${DATAINJECTION_VERSION} \
  && ARCHIVE=glpi-datainjection-${VERSION}.tar.bz2 \
+ && JQ_FILTER='.assets[] | select(.name=="'${ARCHIVE}'") | .browser_download_url' \
+ && URL="https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
+ && SRC=$(curl -sL "${URL}" | jq -r "$JQ_FILTER" ) \
+ && curl -sLO "${SRC}" \
+ && tar xavf "${ARCHIVE}" -C /var/www/glpi/plugins \
+ && rm "${ARCHIVE}"
+
+# Download singlesignon
+RUN set -e \
+ && REPO=edgardmessias/glpi-singlesignon \
+ && VERSION=${SINGLESIGNON_VERSION} \
+ && ARCHIVE=singlesignon.tgz \
  && JQ_FILTER='.assets[] | select(.name=="'${ARCHIVE}'") | .browser_download_url' \
  && URL="https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
  && SRC=$(curl -sL "${URL}" | jq -r "$JQ_FILTER" ) \
