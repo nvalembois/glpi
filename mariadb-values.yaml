@@ -18,6 +18,7 @@ primary:
             operator: In
             values:
               - "true"
+# MUST run once : mariadb-tzinfo-to-sql /usr/share/zoneinfo | mariadb -u root --password=$MARIADB_ROOT_PASSWORD mysql
 initdbScripts:
   grantTZ: GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi'@'%';
 

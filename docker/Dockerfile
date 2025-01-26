@@ -1,8 +1,11 @@
 ################# Sources
 FROM docker.io/library/alpine:3.21.2 AS source
 
+# renovate: datasource=github-releases depName=glpi-project/glpi
 ARG GLPI_VERSION=10.0.17
+# renovate: datasource=github-releases depName=pluginsGLPI/datainjection
 ARG DATAINJECTION_VERSION=2.14.1
+# renovate: datasource=github-releases depName=edgardmessias/glpi-singlesignon
 ARG SINGLESIGNON_VERSION=v1.3.3
 
 # User and packages
