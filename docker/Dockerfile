@@ -113,7 +113,8 @@ ADD glpi.conf /etc/php${PHP_MAJOR_VERSION}/php-fpm.d/
 
 USER 10001
 ENTRYPOINT [ "" ]
-CMD [ "/usr/sbin/php-fpm${PHP_MAJOR_VERSION}", "-F" ]
+#### WARNING: php-fpm
+CMD [ "/usr/sbin/php-fpm83", "-F" ]
 
 ################## cron
 FROM init AS cron
@@ -154,4 +155,4 @@ USER 101
 WORKDIR /var/www/glpi
 
 ENTRYPOINT [ "" ]
-CMD [ "/sbin/nginx", "-g", "daemon off;" ]
+CMD [ "/usr/sbin/nginx", "-g", "daemon off;" ]
