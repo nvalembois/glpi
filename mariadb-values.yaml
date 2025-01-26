@@ -18,6 +18,8 @@ primary:
             operator: In
             values:
               - "true"
+initdbScripts:
+  grantTZ: GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi'@'%';
 
 networkPolicy:
   enabled: true

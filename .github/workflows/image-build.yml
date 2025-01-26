@@ -51,14 +51,63 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - 
-        name: Build app
+        name: Build init
         uses: docker/build-push-action@v6  # https://github.com/docker/build-push-action
+        env:
+          TARGET: init # Set the target value here
         with:
           push: ${{ github.ref_name == 'main' }}
+          target: ${{ env.TARGET }}
           context: docker
           platforms: linux/amd64
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.versions.outputs.GLPI_VERSION }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.TARGET }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.TARGET }}:${{ steps.versions.outputs.GLPI_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - 
+        name: Build php-fpm
+        uses: docker/build-push-action@v6  # https://github.com/docker/build-push-action
+        env:
+          TARGET: php-fpm # Set the target value here
+        with:
+          push: ${{ github.ref_name == 'main' }}
+          target: ${{ env.TARGET }}
+          context: docker
+          platforms: linux/amd64
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.TARGET }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.TARGET }}:${{ steps.versions.outputs.GLPI_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - 
+        name: Build cron
+        uses: docker/build-push-action@v6  # https://github.com/docker/build-push-action
+        env:
+          TARGET: cron # Set the target value here
+        with:
+          push: ${{ github.ref_name == 'main' }}
+          target: ${{ env.TARGET }}
+          context: docker
+          platforms: linux/amd64
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.TARGET }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.TARGET }}:${{ steps.versions.outputs.GLPI_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - 
+        name: Build nginx
+        uses: docker/build-push-action@v6  # https://github.com/docker/build-push-action
+        env:
+          TARGET: nginx # Set the target value here
+        with:
+          push: ${{ github.ref_name == 'main' }}
+          target: ${{ env.TARGET }}
+          context: docker
+          platforms: linux/amd64
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.TARGET }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.TARGET }}:${{ steps.versions.outputs.GLPI_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+        
