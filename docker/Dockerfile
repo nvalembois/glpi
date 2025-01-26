@@ -1,5 +1,5 @@
 ################# Sources
-FROM docker.io/library/alpine:3.21.2 AS source
+FROM docker.io/library/alpine:3.21.2@sha256:56fa17d2a7e7f168a043a2712e63aed1f8543aeafdcee47c58dcffe38ed51099 AS source
 
 # renovate: datasource=github-releases depName=glpi-project/glpi
 ARG GLPI_VERSION=10.0.17
@@ -58,7 +58,7 @@ RUN chown -R root:glpi /var/www/glpi \
  && chmod -R o-rwx,g-w,g+rX /var/www/glpi
 
 ################### Init
-FROM docker.io/library/alpine:3.21.2 AS init
+FROM docker.io/library/alpine:3.21.2@sha256:56fa17d2a7e7f168a043a2712e63aed1f8543aeafdcee47c58dcffe38ed51099 AS init
 
 ARG PHP_MAJOR_VERSION=83
 ARG TIMEZONE=Europe/Paris
@@ -150,7 +150,7 @@ ENTRYPOINT [ "" ]
 CMD [ "/usr/bin/supercronic", "/etc/crontab-glpi" ]
         
 ################## nginx
-FROM docker.io/nginxinc/nginx-unprivileged:1.27-alpine AS nginx
+FROM docker.io/nginxinc/nginx-unprivileged:1.27-alpine@sha256:9e7238f579a54582263a960d1b0094b4a3ecce641342eda3f8e2ff82b1703d2b AS nginx
 
 USER root
 
