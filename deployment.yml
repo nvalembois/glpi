@@ -37,7 +37,7 @@ spec:
                 values:
                  - "true"
       securityContext:
-        fsGroup: 101
+        fsGroup: 10001
         runAsNonRoot: true
       volumes:
       - name: glpi-data
@@ -53,10 +53,7 @@ spec:
       initContainers:
       - name: init
         imagePullPolicy: Always
-        image: ghcr.io/nvalembois/glpi:10.0.17
-        args:
-        - /bin/sh
-        - /init/init.sh
+        image: ghcr.io/nvalembois/glpi-init:10.0.17
         env:
         - name: MARIADB_HOST
           value: "glpi-mariadb"
@@ -83,11 +80,7 @@ spec:
       containers:
       - name: nginx
         imagePullPolicy: Always
-        image: ghcr.io/nvalembois/glpi:10.0.17
-        args:
-        - /usr/sbin/nginx
-        - -g
-        - daemon off;
+        image: ghcr.io/nvalembois/glpi-nginx:10.0.17
         ports:
         - containerPort: 8080
           name: http
@@ -100,10 +93,7 @@ spec:
             drop: ["ALL"]
       - name: php-fpm
         imagePullPolicy: Always
-        image: ghcr.io/nvalembois/glpi:10.0.17
-        args:
-        - /usr/sbin/php-fpm83
-        - -F
+        image: ghcr.io/nvalembois/glpi-php-fpm:10.0.17
         volumeMounts:
         - mountPath: /data
           name: glpi-data
@@ -115,10 +105,7 @@ spec:
             drop: ["ALL"]
       - name: cron
         imagePullPolicy: Always
-        image: ghcr.io/nvalembois/glpi:10.0.17
-        args:
-        - /usr/bin/supercronic
-        - /etc/crontab-glpi
+        image: ghcr.io/nvalembois/glpi-cron:10.0.17
         volumeMounts:
         - mountPath: /data
           name: glpi-data
