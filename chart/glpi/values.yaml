@@ -5,6 +5,7 @@ controllers:
     replicas: 1
     pod:
       labels:
+        ### WARN: change glpi with Release.Name for netpol matching
         glpi-mariadb-client: "true"
       automountServiceAccountToken: false
       affinity:
