@@ -1,0 +1,17 @@
+# Chart.yaml
+apiVersion: v2
+name: glpi
+description: glpi deployment via Helm
+type: application
+version: 1.0.0
+# renovate: image=ghcr.io/nvalembois/glpi-php-fpm
+appVersion: 10.0.17
+kubeVersion: ">=1.22.0-0"
+
+dependencies:
+- name: common
+  repository: https://bjw-s.github.io/helm-charts
+  version: 3.6.1
+- name: mariadb
+  repository: oci://docker.io/bitnamicharts
+  version: 20.2.2

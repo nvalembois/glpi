@@ -1,0 +1,158 @@
+
+controllers:
+  glpi:
+    type: deployment
+    replicas: 1
+    pod:
+      labels:
+        glpi-mariadb-client: "true"
+      automountServiceAccountToken: false
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/storage
+                operator: In
+                values:
+                - "true"
+      securityContext:
+        fsGroup: 10001
+        runAsNonRoot: true
+    defaultContainerOptions:
+      image:
+        pullPolicy: Always
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+    initContainers:
+      init:
+        image: 
+          repository: ghcr.io/nvalembois/glpi-init
+          tag: "{{ .Chart.AppVersion }}"
+        env:
+          MARIADB_HOST: "{{ .Release.Name }}-mariadb"
+          MARIADB_USER: "{{ .Values.mariadb.auth.username }}"
+          MARIADB_DATABASE: "{{ .Values.mariadb.auth.database }}"
+          MARIADB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Release.Name }}-mariadb"
+                key: mariadb-password
+          GLPI_TELEMETRY: "no"
+    containers:
+      nginx:
+        image: 
+          repository: ghcr.io/nvalembois/glpi-nginx
+          tag: "{{ .Chart.AppVersion }}"
+        ports:
+        - containerPort: 8080
+          name: http
+      phpfpm:
+        image:
+          repository: ghcr.io/nvalembois/glpi-php-fpm
+          tag: "{{ .Chart.AppVersion }}"
+      cron:
+        image: 
+          repository: ghcr.io/nvalembois/glpi-cron
+          tag: "{{ .Chart.AppVersion }}"
+      
+persistence:
+  glpi:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    retain: true
+    advancedMounts:
+      glpi:
+        init: [ { path: /data }]
+        phpfpm: [ { path: /data }]
+        cron: [ { path: /data }]
+  phpfpmsocket:
+    type: emptyDir
+    medium: Memory
+    sizeLimit: 100Mi
+    advancedMounts:
+      glpi:
+        phpfpm: [ { path: /run/php }]
+        nginx: [ { path: /run/php }]
+   
+service:
+  glpi:
+    controller: glpi
+    ports:
+      http:
+        port: 8080 # "{{ ( .Values.controllers.glpi.containers.nginx.ports | first ).containerPort }}"
+        
+ingress:
+  glpi:
+    annotations:
+      cert-manager.io/cluster-issuer: ingress-issuer
+      cert-manager.io/common-name: "{{ ( .Values.ingress.glpi.hosts | first ).host }}"
+    hosts:
+    - host: glpi.local
+      paths:
+      - path: /
+        service:
+          identifier: glpi
+    tls:
+    - secretName: "{{ ( .Values.ingress.glpi.hosts | first ).host }}-tls"
+      hosts: [ "{{ ( .Values.ingress.glpi.hosts | first ).host }}" ]
+
+rawResources:
+  mariadb:
+    enabled: true
+    apiVersion: bitnami.com/v1alpha1
+    kind: SealedSecret
+    spec:
+      spec:
+        encryptedData:
+          # kubeseal --from-file=mariadb-root-password=/dev/stdin -n glpi --name glpi-mariadb --raw --controller-namespace=kube-sealed-secrets --controller-name=sealed-secrets 
+          mariadb-root-password: AgASXfCEIKvtBrp0wpGNdGu24PJWb58GipIxmhmdl/eqMj9u8ECkcXEYhd5SZvIp/JOZJwc1RbiXkR+s8vC2kBfk6vlGFGuwGJdREn5bjE2N81+i9y2//5w70RPYRCB1Y86WU4nNBzOAmpHJi9Q8RJYDUcpj3hFbYUtzA2+3YL9+adHPjtdWT1tFsmfTW3L+iW6WUm/y6iqsHscB8BRg437+OnfD/MGohjxhiluuJ7uiAAACW9fwJWSBIPws9nKMv1GTuYutvthYOfLGHZKrgQVcWroFQZY29+mMcE7ObOSQ8vVB5KBtLJ7vCvrux6UeL+dvmWEtg5VNxobhiMkeYdSIBELRuRbvOdNnHVEiVhG/7ZsQ/tzYUSLi0xBkMdh3Ha6l+yicmM5JaHaf8CBx2pfeBZqV6WI7OQle+EsJQJeE5g61PqUfnjM+DnrSBX7yWZXsUoV1ZK36DB51NefOIfvKYIpZLbArN8AYwbP1j74DVqLUX7ryFOdajY+NKMETLRwGofyfAs1gtHpk37w7FCSbV1dqs9Boa2H9MWffPUimPRY+Jvz8OxMXUR0r2av4Q2tiO8XEysIK/IG+1r3FHFIOStdrnV4VPXlJCFjSen1y42NaKwQsL6w9XHLWh/vJe7I6oHTB+gxlvMYPBGc+4bFsjV2ny+JvLVf+Q0OLnvXchV4eShvPETjBcljdsItA/hBJ2cOdu4jwDvdg
+          # kubeseal --from-file=mariadb-password=/dev/stdin -n glpi --name glpi-mariadb --raw --controller-namespace=kube-sealed-secrets --controller-name=sealed-secrets 
+          mariadb-password: AgCnAnzYem2Agv3LOS8Yvpcno8pGX5g3upF2mVUnCGQY08XHUFsoUe6imAG3x991kZJEu8Hzn3SB6ff8gAP8z7UBpHvvUgiAgbEyehOMy13SVe5tUSkffzvPxQaWf5H8KapriPaKuw/iPvtFmhGosPllKkB3koavh/awQUcnPeRNV0ad7im4iIw/HwigITvgaC26DLbkGMqrxltkHL1FwuhT72c69NukfdZFnZ2j9MjIUWyhTdPIPkEYGJO9MmiIQuittpd6BSrt1Ek3DFti7HFrEGcWbCFq0JDv9SJ6rX+gajv8GJVmej9Q4WgCXSSGnPsGJTcvd3Ojcdm9XXr8kdottvcvsZbkZPXyBwQ9oBd8lMoWxkLAC683NGFIOM1JWLDSRNtav7sOMe/6hAyF1FIHlkM1qsihvjhtpkilYGPjZcT7T/9bXamQmdVsOWCqflbKUBKen2R/IfrMUigPGT3nYeLK1FdkHyYMw1Yfsm7DaABbOSMatmX0HyQPSbbuDQN+ExkklmWMyqG61LZ4HPiRr1yz4xxTcRxX9pCPsL2OIH42KhvetyHRL+ptDJ8UgfD0L6dvo2t7JQB5c8Jv+ieRcNP2iY5JZz2V9WcyMLTJM2ki+5dEiEgq26fgoSTOzGUokuScLFSXTdxkinPvAIfFnPZtFrrMTulmW/JKsqIXwBvz394XdhFPYl1Y99McKgUSJPcGViIgKbYu
+        template:
+          type: Opaque
+mariadb:
+  auth:
+    database: glpi
+    username: glpi
+    existingSecret: "{{ .Release.Name }}-mariadb"   # (mariadb-root-password, mariadb-replication-password and mariadb-password)
+
+  primary:
+    pdb:
+      create: false
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: node-role.kubernetes.io/storage
+              operator: In
+              values:
+                - "true"
+  initdbScripts:
+    install_timezone.sh: |
+      #!/bin/sh
+      set -e
+      opts="--silent --skip-column-names -u root --password=$MARIADB_ROOT_PASSWORD"
+      query='SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '"'mysql'"' AND table_name = '"'time_zone_name'"''
+      echo '-- Query for mysql.time_zone* tables'
+      tc=$(mariadb $opts -e "$query" mysql)
+      if [[ $tc -eq 0 ]]; then
+        echo '-- Install time_zone* tables'
+        mariadb-tzinfo-to-sql /usr/share/zoneinfo | mariadb $opts mysql
+        query='GRANT SELECT ON `mysql`.`time_zone_name` TO '"'$MARIADB_USER'@'%'"
+        echo '-- Grant access to mysql.time_zone_name'
+        mariadb $opts -e "$query" mysql
+      else
+        echo '-- mysql.time_zone* tables allready installed'
+      fi
+
+  networkPolicy:
+    enabled: true
+    allowExternal: false
+
+  serviceAccount:
+    create: true
