@@ -20,6 +20,8 @@ controllers:
       securityContext:
         fsGroup: 10001
         runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
     defaultContainerOptions:
       image:
         pullPolicy: Always
@@ -109,9 +111,9 @@ rawResources:
     spec:
       spec:
         encryptedData:
-          # kubeseal --from-file=mariadb-root-password=/dev/stdin -n glpi --name glpi-mariadb --raw --controller-namespace=kube-sealed-secrets --controller-name=sealed-secrets 
+          # echo -n "$(pwgen 20 1)" | kubeseal -n glpi --name glpi-mariadb --raw --controller-namespace=kube-sealed-secrets --controller-name=sealed-secrets 
           mariadb-root-password: AgASXfCEIKvtBrp0wpGNdGu24PJWb58GipIxmhmdl/eqMj9u8ECkcXEYhd5SZvIp/JOZJwc1RbiXkR+s8vC2kBfk6vlGFGuwGJdREn5bjE2N81+i9y2//5w70RPYRCB1Y86WU4nNBzOAmpHJi9Q8RJYDUcpj3hFbYUtzA2+3YL9+adHPjtdWT1tFsmfTW3L+iW6WUm/y6iqsHscB8BRg437+OnfD/MGohjxhiluuJ7uiAAACW9fwJWSBIPws9nKMv1GTuYutvthYOfLGHZKrgQVcWroFQZY29+mMcE7ObOSQ8vVB5KBtLJ7vCvrux6UeL+dvmWEtg5VNxobhiMkeYdSIBELRuRbvOdNnHVEiVhG/7ZsQ/tzYUSLi0xBkMdh3Ha6l+yicmM5JaHaf8CBx2pfeBZqV6WI7OQle+EsJQJeE5g61PqUfnjM+DnrSBX7yWZXsUoV1ZK36DB51NefOIfvKYIpZLbArN8AYwbP1j74DVqLUX7ryFOdajY+NKMETLRwGofyfAs1gtHpk37w7FCSbV1dqs9Boa2H9MWffPUimPRY+Jvz8OxMXUR0r2av4Q2tiO8XEysIK/IG+1r3FHFIOStdrnV4VPXlJCFjSen1y42NaKwQsL6w9XHLWh/vJe7I6oHTB+gxlvMYPBGc+4bFsjV2ny+JvLVf+Q0OLnvXchV4eShvPETjBcljdsItA/hBJ2cOdu4jwDvdg
-          # kubeseal --from-file=mariadb-password=/dev/stdin -n glpi --name glpi-mariadb --raw --controller-namespace=kube-sealed-secrets --controller-name=sealed-secrets 
+          # echo -n "$(pwgen 20 1)" | kubeseal -n glpi --name glpi-mariadb --raw --controller-namespace=kube-sealed-secrets --controller-name=sealed-secrets 
           mariadb-password: AgCnAnzYem2Agv3LOS8Yvpcno8pGX5g3upF2mVUnCGQY08XHUFsoUe6imAG3x991kZJEu8Hzn3SB6ff8gAP8z7UBpHvvUgiAgbEyehOMy13SVe5tUSkffzvPxQaWf5H8KapriPaKuw/iPvtFmhGosPllKkB3koavh/awQUcnPeRNV0ad7im4iIw/HwigITvgaC26DLbkGMqrxltkHL1FwuhT72c69NukfdZFnZ2j9MjIUWyhTdPIPkEYGJO9MmiIQuittpd6BSrt1Ek3DFti7HFrEGcWbCFq0JDv9SJ6rX+gajv8GJVmej9Q4WgCXSSGnPsGJTcvd3Ojcdm9XXr8kdottvcvsZbkZPXyBwQ9oBd8lMoWxkLAC683NGFIOM1JWLDSRNtav7sOMe/6hAyF1FIHlkM1qsihvjhtpkilYGPjZcT7T/9bXamQmdVsOWCqflbKUBKen2R/IfrMUigPGT3nYeLK1FdkHyYMw1Yfsm7DaABbOSMatmX0HyQPSbbuDQN+ExkklmWMyqG61LZ4HPiRr1yz4xxTcRxX9pCPsL2OIH42KhvetyHRL+ptDJ8UgfD0L6dvo2t7JQB5c8Jv+ieRcNP2iY5JZz2V9WcyMLTJM2ki+5dEiEgq26fgoSTOzGUokuScLFSXTdxkinPvAIfFnPZtFrrMTulmW/JKsqIXwBvz394XdhFPYl1Y99McKgUSJPcGViIgKbYu
         template:
           type: Opaque
