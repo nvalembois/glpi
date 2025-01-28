@@ -1,0 +1,18 @@
+apiVersion: v2
+name: ralph
+description: ralph deployment via Helm
+type: application
+version: 1.0.0
+# renovate: image=docker.io/allegro/ralph
+appVersion: "20241211.1"
+
+dependencies:
+- name: common
+  repository: https://bjw-s.github.io/helm-charts
+  version: 3.6.1
+- name: mariadb
+  repository: oci://docker.io/bitnamicharts
+  version: 20.2.2
+- name: redis
+  repository: oci://docker.io/bitnamicharts
+  version: 20.6.3
