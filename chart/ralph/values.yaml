@@ -1,0 +1,202 @@
+
+controllers:
+  ralph:
+    type: deployment
+    replicas: 1
+    pod:
+      labels:
+        ### WARN: change ralph with Release.Name for netpol matching
+        ralph-mariadb-client: "true"
+        ralph-redis-client: "true"
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: false
+        seccompProfile:
+          type: RuntimeDefault
+      hostAliases:
+      - ip: 127.0.0.1
+        hostnames: [ "web" ]
+    defaultContainerOptions:
+      image:
+        pullPolicy: Always
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+    containers:
+      web:
+        image:
+          repository: docker.io/allegro/ralph
+          tag: "{{ .Chart.AppVersion }}"
+        env:
+          DATABASE_HOST: "{{ .Release.Name }}-mariadb"
+          DATABASE_USER: "{{ .Values.mariadb.auth.username }}"
+          DATABASE_NAME: "{{ .Values.mariadb.auth.database }}"
+          DATABASE_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Release.Name }}-mariadb"
+                key: mariadb-password
+          REDIS_HOST: "{{ .Release.Name }}-redis"
+          REDIS_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Release.Name }}-redis"
+                key: password
+          REDIS_PORT: 6379
+          REDIS_DB: 0
+      nginx:
+        image:
+          repository: docker.io/allegro/ralph-static-nginx
+          tag: "{{ .Chart.AppVersion }}"
+        ports:
+        - containerPort: 80
+          name: http
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+            add: [ "NET_BIND_SERVICE" ]
+  inkpy:
+    type: deployment
+    replicas: 1
+    pod:
+      labels:
+        ### WARN: change ralph with Release.Name for netpol matching
+        ralph-redis-client: "true"
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: false
+        seccompProfile:
+          type: RuntimeDefault
+    defaultContainerOptions:
+      image:
+        pullPolicy: Always
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+    containers:
+      inkpy:
+        image:
+          repository: docker.io/allegro/inkpy
+          tag: "0.1.4"
+        env:
+          REDIS_HOST: "{{ .Release.Name }}-redis"
+          REDIS_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Release.Name }}-redis"
+                key: password
+          REDIS_PORT: 6379
+          REDIS_DB: 0
+
+persistence:
+  media:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    retain: true
+    advancedMounts:
+      ralph:
+        web: [ { path: /usr/share/ralph/static }]
+  static:
+    type: persistentVolumeClaim
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    retain: true
+    advancedMounts:
+      ralph:
+        phpfpm: [ { path: /run/php }]
+        nginx: [ { path: /run/php }]
+
+service:
+  ralph:
+    controller: ralph
+    ports:
+      http:
+        port: 8080 # "{{ ( .Values.controllers.ralph.containers.nginx.ports | first ).containerPort }}"
+
+ingress:
+  ralph:
+    annotations:
+      cert-manager.io/cluster-issuer: cluster-issuer
+      cert-manager.io/common-name: "{{ ( .Values.ingress.ralph.hosts | first ).host }}"
+    hosts:
+    - host: ralph.local
+      paths:
+      - path: /
+        service:
+          identifier: ralph
+    tls:
+    - secretName: "{{ ( .Values.ingress.ralph.hosts | first ).host }}-tls"
+      hosts: [ "{{ ( .Values.ingress.ralph.hosts | first ).host }}" ]
+
+rawResources:
+  mariadb:
+    enabled: true
+    apiVersion: bitnami.com/v1alpha1
+    kind: SealedSecret
+    spec:
+      spec:
+        encryptedData:
+          # echo -n "$(pwgen -s 20 1)" | kubeseal -n ralph --name ralph-mariadb --raw
+          mariadb-root-password: AgBVBwxuCzNBvFsahFSHAOWiqnB+YyfJUm9/tDlD2I93VFH+xbJ5hvVoKomQdg6gF7S8hq1fzY3c3oXChGztL/m9N/RhExYRgeu2DzAoyyLL8cL/vGm4lGkD267bYvg2u5Ta1RgWzfFtUlE2IsizsT8yWScFtizbpor1GggZyeGbNw/cFEB7SwLCftzrKVNtgYTHEpXfWODb1LGM84EaR1UWpXzzTgsMlBA3slINiEea4q3mgi4K5yrg4EpHXv3rCfKs+YdYkGlm6/Vz0LfhSmiyJW/TUxns2q3uxefu3qUbfKtjhCeuR73koa2Bh1S8NYmZE9p9yBn+N6xBnsz+2N18yOKC2AU05FMkl6/eM76Kl/uBOdKf8YlcMCk3/RQuRYKHWGPrKkeVAVe8BPgsUWZ4jzGFS3A/3//KoDKGwUUPTMO3iDHzuc5vahWTjZb2iWm/1F3iwe14UTipXjTgTAYZhxj5YrGUOkv2uOGIUGLj3Pw5+nzL1gI2f5CjZDkzOphAwL7GwiqBM7TZjAYRKaXwmNlrKZZkArst2yOTh8aQ0YMw48LTpE+MN8qvShJWlM/lO/1+S0lKpRHENihnWJKwI4VH7kN7Rd7H8MFm7QFP1ztE8edqoR4fYJVM0ks0+lOPMWa4HrAuP6Sd6gj8Es1TOjr6x/Emvulw7aqLUfdGTa9naJEjz1x7ieLYt6NuDX33Avt/gm9rLfSWBFoMIWtAvqAVOQ==
+          # echo -n "$(pwgen -s 20 1)" | kubeseal -n ralph --name ralph-mariadb --raw
+          mariadb-password: AgBs3uhDmF1mgp7QMwbmOXv0lmBypWZ6POPMIIySlSMlpLyO0FzvbXiv+xVd0ik1Ych4YLG3VgZpdtRJfTg5xlxnSw+L5abmJoFwL9IMhjTHiCSA0AZLj4pNbGNPRhXeYrsKnickgN+VGI7uZhsF/frf4LNzbfv9oHtlHeayzoxC4ryy0a1JUEZ7eOaDHxnPxlJ+Rb8BMv0GA2gCG37udyQ2TmV0mx58q6N3By9w2vkdIFa1VlB/JviZlmS8gnU2/jbNdz/enpj9tJcPeOSqa+I4C2h/t6ATMh+yON7lSaouirQIP6BkwjndtTht/m+U1fnWmeE4g8TfYmNSkLiBPQ0n8GBcqV6pGuNh7jFS8dBhf4MPlEgbaiXv4pSo3xEt2BOT0ix32yVjqL0WGoFm3oEoBwCaacJQitY7a8FKBSaeLCmNj5zzRjg0hJjMu7URceehSDM7Kyd5DoBytMc0hNUK1xGYqTLJoYnLSYzJqgrNH5NmBstRSteEr0CzCqzUe6RUTJ40JrcmaKT52hRy1xWQte6swbzsFznW5mFEPVywccYy37c5EywgG00n1+GAT0wqyWIt0Zau8OnsiEdI1wrYF5trHhEaf94pUc6kD0GFS1s14X7Du2fzSwiH5bsPM4abN69F7Kjtbpa9Y37oRVyxm3DktwEmZ1/zBqYYqK7SP+9hk4tjvU6scV9JFZZsVYpivW3ck0HCUvaRgGOQ8eXwjaZGFw==
+        template:
+          type: Opaque
+  redis:
+    enabled: true
+    apiVersion: bitnami.com/v1alpha1
+    kind: SealedSecret
+    spec:
+      spec:
+        encryptedData:
+          # echo -n "$(pwgen -s 20 1)" | kubeseal -n ralph --name ralph-redis --raw
+          password: AgA4l61m0lYM+W6DRcky35w+X98v8XtEWBOiMO05tbhTHH04l4az9mq6kX3UpoBe/YyvVAKjEmUh6RmNmt6KyB1+feyYz4rv+97Zo+lEU1/VZ4Clc7GDd548U9ZeVY+6zP+lWnCfcbd+d+Sknk7MpoPQjGChet+PW2VSNfvX80q8qtdXzNIDth1fr+vE2t2Usu5UTZTRu/olwQ+EBMmf2hRnXUL4JP9T3EJ6kyLuyY4bOmRoTZKtmM47omacbFyLBGPPDnkAO5HYSr6fD+41DRJqfOPqenY4BRMu1/rcF/xVx7HH+IfMLe6t21JIv4eMFAo6XeWRTQGXWwgSKAPkZM3lfv6gH0uLjACtYqnmAsYg0AU5MOOJGsRvKVlKb8HD6vKUrT3rtitqfUIeO2jtNczjclhTQtxfbArKN/UcLnz+w9/Pf1xKHpqKcutJloPGtGiTZrbC3nBtqFXcXbyVtF3ZS8sQ/PluGTeNvq02cytcn3LJcodFrHQiWaZYzqj7v97eyfYaBMsKjQp8KCgFSOO0suJiNEY42xdfpg5cPTYceZh2OvHYO5Fq6d2dDTmy0W624fLoFo+Mjt1CvIyzavw9HAFLLPXer71Ab/v1N8nZP1TtLvzCxz39fBMTe0UAdM2V8NZtvJkCTSSb7Du4gTFvWVCHVuLDvyh5dHE7Kq1iaPleu3caZYftLVMnmAIevmBJQLUl0KkG1r7LxPPCTJWuufDkog==
+        template:
+          type: Opaque
+
+mariadb:
+  auth:
+    database: ralph
+    username: ralph
+    existingSecret: "{{ .Release.Name }}-mariadb"   # (mariadb-root-password, mariadb-replication-password and mariadb-password)
+
+  primary:
+    pdb:
+      create: false
+
+  networkPolicy:
+    enabled: true
+    allowExternal: false
+
+  serviceAccount:
+    create: true
+
+redis:
+  architecture: standalone
+
+  auth:
+    enabled: true
+    username: ralph
+    existingSecret: "{{ .Release.Name }}-redis"
+    existingSecretPasswordKey: password
+
+  master:
+    pdb:
+      create: false
+    
+    persistence:
+      size: 1Gi
+
+  networkPolicy:
+    enabled: true
+    allowExternal: false
+
+  serviceAccount:
+    create: true
+  
+  sysctlImage:
+    enabled: false
