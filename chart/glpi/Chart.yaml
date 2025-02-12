@@ -11,7 +11,7 @@ kubeVersion: ">=1.22.0-0"
 dependencies:
 - name: common
   repository: https://bjw-s.github.io/helm-charts
-  version: 3.6.1
+  version: 3.7.1
 - name: mariadb
   repository: oci://docker.io/bitnamicharts
   version: 20.2.2
