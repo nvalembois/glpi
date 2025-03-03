@@ -15,4 +15,4 @@ dependencies:
   version: 20.2.2
 - name: redis
   repository: oci://docker.io/bitnamicharts
-  version: 20.8.0
+  version: 20.10.0
