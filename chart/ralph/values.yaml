@@ -80,7 +80,7 @@ controllers:
       inkpy:
         image:
           repository: docker.io/allegro/inkpy
-          tag: "0.1.4"
+          tag: "0.1.4@sha256:91355216b6a29c8079dc6ddbd6018abe175963039580fabc13f25a683899a767"
         env:
           REDIS_HOST: "{{ .Release.Name }}-redis"
           REDIS_PASSWORD:
