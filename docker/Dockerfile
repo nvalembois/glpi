@@ -6,7 +6,7 @@ ARG GLPI_VERSION=10.0.18
 # renovate: datasource=github-releases depName=pluginsGLPI/datainjection
 ARG DATAINJECTION_VERSION=2.14.1
 # renovate: datasource=github-releases depName=edgardmessias/glpi-singlesignon
-ARG SINGLESIGNON_VERSION=v1.3.3
+ARG SINGLESIGNON_VERSION=v1.4.0
 
 # User and packages
 RUN set -e \
