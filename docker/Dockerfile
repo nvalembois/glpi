@@ -16,39 +16,18 @@ RUN set -e \
 
 # Download gpli
 RUN set -e \
- && REPO=glpi-project/glpi \
- && VERSION=${GLPI_VERSION} \
- && ARCHIVE=glpi-${VERSION}.tgz \
- && JQ_FILTER='.assets[] | select(.name=="'${ARCHIVE}'") | .browser_download_url' \
- && URL="https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
- && SRC=$(curl -sL "${URL}" | jq -r "$JQ_FILTER" ) \
- && curl -sLO "${SRC}" \
- && tar xavf "${ARCHIVE}" -C /var/www \
- && rm "${ARCHIVE}"
+ && curl -sL "https://github.com/glpi-project/glpi/releases/download/${GLPI_VERSION}/glpi-${GLPI_VERSION}.tgz" | \
+    tar xzvf - -C /var/www
 
 # Download datainjection
 RUN set -e \
- && REPO=pluginsGLPI/datainjection \
- && VERSION=${DATAINJECTION_VERSION} \
- && ARCHIVE=glpi-datainjection-${VERSION}.tar.bz2 \
- && JQ_FILTER='.assets[] | select(.name=="'${ARCHIVE}'") | .browser_download_url' \
- && URL="https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
- && SRC=$(curl -sL "${URL}" | jq -r "$JQ_FILTER" ) \
- && curl -sLO "${SRC}" \
- && tar xavf "${ARCHIVE}" -C /var/www/glpi/plugins \
- && rm "${ARCHIVE}"
+ && curl -sL "https://github.com/pluginsGLPI/datainjection/releases/download/${DATAINJECTION_VERSION}/glpi-datainjection-${DATAINJECTION_VERSION}.tar.bz2" | \
+    tar xjvf - -C /var/www/glpi/plugins
 
 # Download singlesignon
 RUN set -e \
- && REPO=edgardmessias/glpi-singlesignon \
- && VERSION=${SINGLESIGNON_VERSION} \
- && ARCHIVE=singlesignon.tgz \
- && JQ_FILTER='.assets[] | select(.name=="'${ARCHIVE}'") | .browser_download_url' \
- && URL="https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
- && SRC=$(curl -sL "${URL}" | jq -r "$JQ_FILTER" ) \
- && curl -sLO "${SRC}" \
- && tar xavf "${ARCHIVE}" -C /var/www/glpi/plugins \
- && rm "${ARCHIVE}"
+ && curl -sL "https://github.com/edgardmessias/glpi-singlesignon/releases/download/${SINGLESIGNON_VERSION}/glpi-singlesignon-${SINGLESIGNON_VERSION}.tar.bz2" | \
+    tar xjvf - -C /var/www/glpi/plugins
  
 # Configure GPLI data pathes for docker
 ADD downstream.php /var/www/glpi/inc/downstream.php
