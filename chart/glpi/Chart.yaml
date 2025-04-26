@@ -14,4 +14,4 @@ dependencies:
   version: 3.7.3
 - name: mariadb
   repository: oci://docker.io/bitnamicharts
-  version: 20.4.3
+  version: 20.5.3
