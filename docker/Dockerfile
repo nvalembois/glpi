@@ -1,5 +1,5 @@
 ################# Sources
-FROM docker.io/library/alpine:3.21.3@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c AS source
+FROM docker.io/library/alpine:3.22.0@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 AS source
 
 # renovate: datasource=github-releases depName=glpi-project/glpi
 ARG GLPI_VERSION=10.0.18
@@ -37,7 +37,7 @@ RUN chown -R root:glpi /var/www/glpi \
  && chmod -R o-rwx,g-w,g+rX /var/www/glpi
 
 ################### Init
-FROM docker.io/library/alpine:3.21.3@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c AS init
+FROM docker.io/library/alpine:3.22.0@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715 AS init
 
 ARG PHP_MAJOR_VERSION=83
 ARG TIMEZONE=Europe/Paris
