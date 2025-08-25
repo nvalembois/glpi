@@ -129,7 +129,7 @@ ENTRYPOINT [ "" ]
 CMD [ "/usr/bin/supercronic", "/etc/crontab-glpi" ]
         
 ################## nginx
-FROM docker.io/nginxinc/nginx-unprivileged:1.29-alpine@sha256:69e8821ff71771c12686bfd1a3f74b92c02f53ea422e1378d26fc7bb29044cf2 AS nginx
+FROM docker.io/nginxinc/nginx-unprivileged:1.29-alpine@sha256:7f2bd114a80058e93237bc9ba8f8febff89f918ff344c707d78b295027256fd1 AS nginx
 
 USER root
 
