@@ -2,7 +2,7 @@
 FROM docker.io/library/alpine:3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1 AS source
 
 # renovate: datasource=github-releases depName=glpi-project/glpi
-ARG GLPI_VERSION=10.0.19
+ARG GLPI_VERSION=10.0.20
 # renovate: datasource=github-releases depName=pluginsGLPI/datainjection
 ARG DATAINJECTION_VERSION=2.14.2
 # renovate: datasource=github-releases depName=edgardmessias/glpi-singlesignon
