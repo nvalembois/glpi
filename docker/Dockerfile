@@ -4,7 +4,7 @@ FROM docker.io/library/alpine:3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997c
 # renovate: datasource=github-releases depName=glpi-project/glpi
 ARG GLPI_VERSION=10.0.20
 # renovate: datasource=github-releases depName=pluginsGLPI/datainjection
-ARG DATAINJECTION_VERSION=2.14.2
+ARG DATAINJECTION_VERSION=2.15.0
 # renovate: datasource=github-releases depName=edgardmessias/glpi-singlesignon
 ARG SINGLESIGNON_VERSION=v1.4.0
 
